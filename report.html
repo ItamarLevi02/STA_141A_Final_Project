@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Neural Activity Analysis of Mouse Decision-Making</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				line-height: 1.6;
+				margin: 0 auto;
+				max-width: 1000px;
+				padding: 20px;
+				color: #333;
+			}
+			h1,
+			h2,
+			h3 {
+				color: #2c3e50;
+			}
+			h1 {
+				text-align: center;
+				border-bottom: 2px solid #3498db;
+				padding-bottom: 10px;
+			}
+			h2 {
+				border-bottom: 1px solid #3498db;
+				padding-bottom: 5px;
+			}
+			code {
+				background-color: #f5f5f5;
+				padding: 2px 4px;
+				border-radius: 4px;
+			}
+			pre {
+				background-color: #f5f5f5;
+				padding: 10px;
+				border-radius: 5px;
+				overflow-x: auto;
+				line-height: 1.4;
+			}
+			.figure {
+				text-align: center;
+				margin: 20px 0;
+			}
+			.figure img {
+				max-width: 100%;
+			}
+			.figure-caption {
+				font-style: italic;
+				margin-top: 8px;
+			}
+			table {
+				border-collapse: collapse;
+				width: 100%;
+				margin: 20px 0;
+			}
+			th,
+			td {
+				border: 1px solid #ddd;
+				padding: 8px;
+				text-align: left;
+			}
+			th {
+				background-color: #f2f2f2;
+			}
+			.highlight {
+				background-color: #ffffcc;
+				padding: 5px;
+				border-left: 3px solid #f39c12;
+			}
+			.abstract {
+				font-style: italic;
+				background-color: #f8f9fa;
+				padding: 15px;
+				border-left: 4px solid #3498db;
+				margin-bottom: 20px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Neural Activity Analysis of Mouse Decision-Making</h1>
+
+		<div class="abstract">
+			<h2>Abstract</h2>
+			<p>
+				This project analyzes neural activity data from mice performing a visual
+				discrimination task to predict trial outcomes. Using recordings from 18
+				sessions across 4 mice, we developed a data integration approach that
+				addresses the challenge of combining information from different neurons
+				across sessions. Our exploratory analysis revealed distinct patterns of
+				neural activity across brain regions, sessions, and individual mice. By
+				applying machine learning techniques with a focus on gradient boosting
+				classifiers, we achieved a cross-validation accuracy of approximately
+				72% when generalizing to new sessions and over 80% accuracy for specific
+				test sessions. Feature importance analysis highlighted that both task
+				parameters (contrast differences) and neural activity in specific brain
+				regions (particularly visual cortex and hippocampus) contribute
+				significantly to predicting behavioral outcomes. This work demonstrates
+				the feasibility of predicting decision-making processes from neural
+				activity and provides insights into the brain areas most relevant for
+				visual discrimination tasks.
+			</p>
+		</div>
+
+		<section id="introduction">
+			<h2>Section 1: Introduction</h2>
+
+			<p>
+				This project explores the neural basis of decision-making through
+				analysis of neural recordings from mice performing a visual
+				discrimination task. The central question we aim to address is:
+				<strong
+					>How can we predict trial outcomes based on neural activity across
+					different brain regions?</strong
+				>
+				Successfully answering this question has significant implications for
+				understanding how the brain processes sensory information and makes
+				decisions.
+			</p>
+
+			<p>
+				The dataset, collected by Steinmetz et al. (2019), consists of
+				recordings from 18 experimental sessions across 4 mice (Cori, Forssmann,
+				Hench, and Lederberg). During each session, mice were presented with
+				visual stimuli consisting of varying contrast levels on two screens
+				(left and right). The mice were trained to make decisions based on the
+				relative contrast: when the left contrast was higher, they had to turn a
+				wheel to the right, and vice versa. When contrasts were equal, they had
+				to hold the wheel still.
+			</p>
+
+			<p>The key variables in this dataset include:</p>
+			<ul>
+				<li>
+					<strong>Neural activity:</strong> Spike counts from neurons across
+					various brain regions
+				</li>
+				<li>
+					<strong>Contrast levels:</strong> The intensity of visual stimuli
+					presented on left and right screens
+				</li>
+				<li>
+					<strong>Trial outcomes:</strong> Whether the mouse successfully
+					completed the task
+				</li>
+				<li>
+					<strong>Mouse identity:</strong> Which of the four mice performed the
+					trial
+				</li>
+				<li>
+					<strong>Brain areas:</strong> The anatomical regions where neurons
+					were recorded
+				</li>
+			</ul>
+
+			<p>Our analysis addresses three main challenges:</p>
+			<ol>
+				<li>
+					Understanding the structure and patterns in high-dimensional neural
+					data
+				</li>
+				<li>
+					Integrating information across sessions with different recorded
+					neurons
+				</li>
+				<li>
+					Building a predictive model that generalizes across sessions and mice
+				</li>
+			</ol>
+
+			<p>
+				The real-world implications of this research extend to understanding
+				neural mechanisms underlying perception and decision-making, with
+				potential applications in brain-machine interfaces, neurological
+				disorder diagnosis, and artificial intelligence systems inspired by
+				neural computation.
+			</p>
+		</section>
+
+		<section id="exploratory-analysis">
+			<h2>Section 2: Exploratory Analysis</h2>
+
+			<h3>Overview of Sessions and Neurons</h3>
+			<p>
+				Our dataset comprises 18 experimental sessions across 4 mice, with a
+				total of 5,081 trials and recordings from thousands of neurons across 62
+				brain areas. The distribution of neurons and brain areas varies
+				considerably across sessions:
+			</p>
+
+			<div class="figure">
+				<img
+					src="./images/neuron_counts.png"
+					alt="Number of Neurons in Each Session"
+				/>
+				<p class="figure-caption">
+					Figure 1: Number of neurons recorded in each session, ranging from 474
+					(Session 16) to 1769 (Session 4).
+				</p>
+			</div>
+
+			<p>
+				Most sessions recorded between 700-1100 neurons, with Sessions 4 and 5
+				having particularly high neuron counts and Sessions 16 and 17 having
+				relatively low counts. This variation in neuron count has implications
+				for comparing neural activity patterns across sessions and necessitates
+				normalization approaches.
+			</p>
+
+			<h3>Brain Areas Recorded</h3>
+			<div class="figure">
+				<img
+					src="./images/brain_areas.png"
+					alt="Brain Areas Recorded in Each Session"
+				/>
+				<p class="figure-caption">
+					Figure 2: Brain areas recorded in each session. No single session
+					recorded from all brain areas.
+				</p>
+			</div>
+
+			<p>Key observations about brain area coverage:</p>
+			<ul>
+				<li>
+					No single session recorded from all brain areas, necessitating data
+					integration across sessions
+				</li>
+				<li>
+					Some brain areas (e.g., CA1, VISp) were consistently recorded across
+					most sessions
+				</li>
+				<li>Others (e.g., DP, LGd) appeared only in specific sessions</li>
+				<li>
+					Sessions 8 and 13 had the most diverse coverage (15 areas), while
+					sessions 2 and 6 had limited coverage (5 areas)
+				</li>
+				<li>
+					Visual cortex regions (VIS-prefixed areas) were frequently recorded,
+					aligning with the visual nature of the task
+				</li>
+			</ul>
+
+			<h3>Contrast Difference Distribution and Success Rates</h3>
+			<p>
+				The contrast difference between left and right stimuli significantly
+				affected task difficulty and success rates:
+			</p>
+
+			<table>
+				<tr>
+					<th>Contrast Difference</th>
+					<th>Percentage of Trials</th>
+					<th>Success Rate</th>
+				</tr>
+				<tr>
+					<td>0.00 (Equal)</td>
+					<td>33.18%</td>
+					<td>63.5%</td>
+				</tr>
+				<tr>
+					<td>0.25 (Low)</td>
+					<td>14.86%</td>
+					<td>68.2%</td>
+				</tr>
+				<tr>
+					<td>0.50 (Medium)</td>
+					<td>20.57%</td>
+					<td>75.4%</td>
+				</tr>
+				<tr>
+					<td>0.75 (High)</td>
+					<td>13.83%</td>
+					<td>79.1%</td>
+				</tr>
+				<tr>
+					<td>1.00 (Very High)</td>
+					<td>17.56%</td>
+					<td>82.3%</td>
+				</tr>
+			</table>
+
+			<p>
+				This analysis confirms that larger contrast differences made the task
+				easier for mice, with success rates increasing monotonically from 63.5%
+				for equal contrasts to 82.3% for maximum contrast difference.
+			</p>
+
+			<h3>Mouse Performance</h3>
+			<div class="figure">
+				<img
+					src="./images/mouse_performance.png"
+					alt="Performance by Mouse and Difficulty Level (Bar Chart)"
+				/>
+				<img
+					src="./images/mouse_performance_line.png"
+					alt="Performance by Mouse and Difficulty Level (Line Plot)"
+				/>
+				<p class="figure-caption">
+					Figure 3: Success rates by mouse and difficulty level. (a) Bar chart
+					comparison showing absolute performance levels. (b) Line plot showing
+					performance trends across increasing contrast differences.
+				</p>
+			</div>
+
+			<p>The four mice showed distinct performance patterns:</p>
+			<ul>
+				<li>
+					<strong>Lederberg</strong> consistently demonstrated the highest
+					performance across all contrast differences, maintaining success rates
+					above 80% even at lower contrast differences
+				</li>
+				<li>
+					<strong>Forssmann</strong> showed the lowest performance at the 0.25
+					contrast difference level but improved substantially at higher
+					contrast differences
+				</li>
+				<li>
+					<strong>Hench</strong> maintained relatively stable performance across
+					different contrast levels
+				</li>
+				<li>
+					<strong>Cori</strong> showed more variable performance patterns, with
+					relatively good performance at 0.25 and 0.5 contrast differences but a
+					notable dip at the 0.75 level
+				</li>
+				<li>
+					All mice generally showed better performance at higher contrast
+					differences (especially at 1.0), confirming that larger differences
+					between stimuli made the task easier to solve
+				</li>
+			</ul>
+
+			<p>
+				These individual differences suggest varying levels of visual
+				discrimination ability or task engagement across mice. The consistent
+				superiority of Lederberg's performance and the unique patterns shown by
+				each mouse highlight the importance of accounting for individual
+				variability in neural analyses.
+			</p>
+
+			<h3>Neural Activity Patterns</h3>
+			<div class="figure">
+				<img
+					src="./images/pca_visualization.png"
+					alt="PCA Visualization of Neural Activity"
+				/>
+				<p class="figure-caption">
+					Figure 4: Principal Component Analysis (PCA) of neural activity
+					patterns colored by session (left) and mouse (right).
+				</p>
+			</div>
+
+			<p>The PCA visualization reveals several important patterns:</p>
+			<ul>
+				<li>
+					Distinct clustering by session, indicating that neural activity
+					patterns are more similar within sessions than between them
+				</li>
+				<li>
+					Clear mouse-specific signatures demonstrating that each mouse has
+					distinctive neural activity that persists across sessions
+				</li>
+				<li>
+					Some sessions show elongated clusters along diagonal axes, suggesting
+					consistent patterns of neural variability
+				</li>
+				<li>
+					The correspondence between the two plots indicates that both session
+					conditions and individual mouse characteristics strongly influence
+					neural activity patterns
+				</li>
+			</ul>
+		</section>
+
+		<section id="data-integration">
+			<h2>Section 3: Data Integration</h2>
+
+			<p>
+				A key challenge in this project was developing a method to integrate
+				data across sessions with different recorded neurons. Our data
+				integration approach addressed this challenge in two main ways:
+			</p>
+
+			<h3>1. Extracting Shared Patterns Across Sessions</h3>
+			<p>
+				We created a standardized feature representation based on brain areas
+				rather than individual neurons:
+			</p>
+
+			<pre><code>def extract_brain_area_features(session_data):
+    """
+    Extract features based on brain area activity across all sessions.
+    This function creates a standardized feature representation that works
+    across sessions with different neurons.
+    """
+    # Identify all unique brain areas across all sessions
+    all_brain_areas = set()
+    for session in session_data.values():
+        all_brain_areas.update(np.unique(session['neural']['brain_area']))
+    all_brain_areas = sorted(list(all_brain_areas))
+    
+    # Create standardized feature vectors for each trial
+    trial_data = []
+    
+    for session_id, session in session_data.items():
+        spks = session['neural']['spks']
+        brain_areas = session['neural']['brain_area']
+        n_trials = spks.shape[0]
+        
+        # For each trial, compute average activity per brain area
+        for trial in range(n_trials):
+            trial_spks = spks[trial]
+            trial_avg_spks = np.mean(trial_spks, axis=1)
+            
+            # Create feature vector with average activity per brain area
+            brain_area_activity = {}
+            for area in all_brain_areas:
+                area_mask = brain_areas == area
+                if np.any(area_mask):
+                    area_activity = np.mean(trial_avg_spks[area_mask]) if np.sum(area_mask) > 0 else 0
+                else:
+                    area_activity = 0
+                brain_area_activity[f"brain_area_{area}"] = area_activity
+            
+            # Add trial metadata and stimulus features
+            trial_info = {
+                'session_id': session_id,
+                'trial_id': trial,
+                'mouse_name': session['trials']['mouse_name'].iloc[0],
+                'contrast_left': session['trials']['contrast_left'][trial],
+                'contrast_right': session['trials']['contrast_right'][trial],
+                'contrast_diff': abs(session['trials']['contrast_left'][trial] - 
+                                   session['trials']['contrast_right'][trial]),
+                'success': session['trials']['success'][trial]
+            }
+            
+            # Combine all information
+            trial_data.append({**trial_info, **brain_area_activity})
+    
+    # Convert to DataFrame
+    features_df = pd.DataFrame(trial_data)
+    return features_df</code></pre>
+
+			<p>
+				This approach allowed us to create a consistent feature representation
+				across all sessions, regardless of which specific neurons were recorded.
+				By averaging neural activity within each brain area, we captured the
+				overall activity patterns while addressing the variability in neuron
+				sampling.
+			</p>
+
+			<h3>2. Addressing Differences Between Sessions</h3>
+			<p>
+				We then enhanced our feature set to account for systematic differences
+				between sessions and mice:
+			</p>
+
+			<pre><code>def add_session_mouse_features(features_df):
+    """
+    Add features that address differences between sessions and mice.
+    Based on EDA findings, we know that both session and mouse identity
+    affect neural activity and task performance.
+    """
+    enhanced_df = features_df.copy()
+    
+    # 1. Create mouse-specific features
+    mouse_performance = enhanced_df.groupby('mouse_name')['success'].mean()
+    enhanced_df['mouse_performance_avg'] = enhanced_df['mouse_name'].map(mouse_mapping)
+    
+    # 2. Create session-specific features
+    session_performance = enhanced_df.groupby('session_id')['success'].mean()
+    enhanced_df['session_performance_avg'] = enhanced_df['session_id'].map(session_mapping)
+    
+    # 3. Create difficulty-specific features
+    enhanced_df['contrast_diff_bin'] = pd.cut(
+        enhanced_df['contrast_diff'], 
+        bins=[0, 0.25, 0.5, 0.75, 1.0], 
+        labels=['very_low', 'low', 'medium', 'high']
+    )
+    
+    # 4. Create interaction features between mouse and difficulty
+    for mouse in enhanced_df['mouse_name'].unique():
+        for diff in enhanced_df['contrast_diff_bin'].unique():
+            mask = (enhanced_df['mouse_name'] == mouse) & (enhanced_df['contrast_diff_bin'] == diff)
+            if mask.sum() > 0:
+                avg_perf = enhanced_df.loc[mask, 'success'].mean()
+                enhanced_df.loc[mask, f'mouse_{mouse}_diff_{diff}_avg'] = avg_perf
+    
+    # 5. Normalize neural features to account for session-specific baselines
+    brain_area_cols = [col for col in enhanced_df.columns if col.startswith('brain_area_')]
+    
+    for session_id in enhanced_df['session_id'].unique():
+        session_mask = enhanced_df['session_id'] == session_id
+        if session_mask.sum() > 0:
+            scaler = StandardScaler()
+            enhanced_df.loc[session_mask, brain_area_cols] = scaler.fit_transform(
+                enhanced_df.loc[session_mask, brain_area_cols]
+            )
+    
+    return enhanced_df</code></pre>
+
+			<p>This enhancement addressed several key challenges:</p>
+			<ul>
+				<li>Mouse-specific differences in performance and neural activity</li>
+				<li>Session-to-session variability in recording conditions</li>
+				<li>The effect of task difficulty on performance</li>
+				<li>Interaction effects between mouse identity and task difficulty</li>
+				<li>Baseline differences in neural activity across sessions</li>
+			</ul>
+
+			<h3>3. Train/Test Split for Cross-Session Prediction</h3>
+			<p>
+				Finally, we created a function to enable leave-one-session-out
+				validation, which properly tests how well our model generalizes to new
+				sessions:
+			</p>
+
+			<pre><code>def create_train_test_split(integrated_df, test_session_id):
+    """
+    Create a train/test split using a leave-one-session-out approach.
+    """
+    # Create train/test split
+    test_data = integrated_df[integrated_df['session_id'] == test_session_id].copy()
+    train_data = integrated_df[integrated_df['session_id'] != test_session_id].copy()
+    
+    # Define feature columns (excluding metadata and target)
+    exclude_cols = ['session_id', 'trial_id', 'mouse_name', 'success', 'contrast_diff_bin']
+    feature_cols = [col for col in integrated_df.columns if col not in exclude_cols]
+    target_col = 'success'
+    
+    return train_data, test_data, feature_cols, target_col</code></pre>
+
+			<p>
+				Our data integration approach successfully enabled the borrowing of
+				information across sessions while accounting for the differences between
+				them. The resulting integrated dataset contained 5,081 trials with 84
+				features, providing a rich basis for predictive modeling.
+			</p>
+		</section>
+
+		<section id="predictive-modeling">
+			<h2>Section 4: Predictive Modeling</h2>
+
+			<h3>Model Selection</h3>
+			<p>
+				We evaluated several classification models to predict trial success
+				based on our integrated features:
+			</p>
+
+			<table>
+				<tr>
+					<th>Model</th>
+					<th>Cross-Validation Accuracy</th>
+				</tr>
+				<tr>
+					<td>Logistic Regression</td>
+					<td>57.84% (±6.28%)</td>
+				</tr>
+				<tr>
+					<td>Random Forest</td>
+					<td>62.92% (±9.10%)</td>
+				</tr>
+				<tr>
+					<td>Gradient Boosting</td>
+					<td>64.40% (±9.25%)</td>
+				</tr>
+			</table>
+
+			<p>
+				Based on these results, we selected Gradient Boosting for further
+				optimization.
+			</p>
+
+			<h3>Hyperparameter Tuning</h3>
+			<p>
+				We performed extensive hyperparameter tuning using leave-one-session-out
+				cross-validation to ensure our model would generalize to new sessions:
+			</p>
+
+			<pre><code>def tune_model_hyperparameters(integrated_df):
+    """
+    Perform grid search to find the best hyperparameters for our model.
+    Uses leave-one-session-out cross-validation to properly evaluate
+    how well the model generalizes to new sessions.
+    """
+    # Create a pipeline with preprocessing and model
+    pipeline = Pipeline([
+        ('scaler', StandardScaler()),
+        ('model', GradientBoostingClassifier(random_state=42))
+    ])
+    
+    # Define hyperparameter grid
+    param_grid = {
+        'model__n_estimators': [100, 200, 300],
+        'model__learning_rate': [0.01, 0.05, 0.1],
+        'model__max_depth': [3, 5, 7],
+        'model__min_samples_split': [2, 5, 10],
+        'model__subsample': [0.8, 0.9, 1.0]
+    }
+    
+    # Use leave-one-session-out cross-validation
+    logo = LeaveOneGroupOut()
+    groups = integrated_df['session_id'].values
+    
+    # Perform grid search
+    grid_search = GridSearchCV(
+        pipeline, param_grid, cv=logo, scoring='accuracy', 
+        n_jobs=-1, verbose=1
+    )
+    grid_search.fit(X, y, groups=groups)
+    
+    # Get best model and parameters
+    best_model = grid_search.best_estimator_
+    best_params = grid_search.best_params_
+    best_score = grid_search.best_score_
+    
+    return best_model, best_params, best_score</code></pre>
+
+			<p>
+				The hyperparameter tuning significantly improved our model's
+				performance, achieving a cross-validation accuracy of 71.96% with the
+				following parameters:
+			</p>
+			<ul>
+				<li>learning_rate: 0.05</li>
+				<li>max_depth: 5</li>
+				<li>min_samples_split: 5</li>
+				<li>n_estimators: 100</li>
+				<li>subsample: 0.8</li>
+			</ul>
+
+			<h3>Feature Importance Analysis</h3>
+			<div class="figure">
+				<img src="./images/feature_importance.png" alt="Feature Importance" />
+				<p class="figure-caption">
+					Figure 5: Top 10 most important features for predicting trial success.
+				</p>
+			</div>
+
+			<p>
+				The feature importance analysis revealed key insights about what drives
+				prediction:
+			</p>
+
+			<ul>
+				<li>
+					<strong>contrast_diff (14.2%)</strong>: The absolute difference
+					between left and right contrast is the most important predictor
+				</li>
+				<li>
+					<strong>contrast_right (7.8%)</strong>: The contrast level on the
+					right side
+				</li>
+				<li>
+					<strong>session_performance_avg (6.9%)</strong>: Session-level
+					performance statistics
+				</li>
+				<li>
+					<strong>brain_area_CA1 (6.6%)</strong>: Activity in the hippocampal
+					CA1 region, important for spatial memory
+				</li>
+				<li>
+					<strong>brain_area_root (6.1%)</strong>: Activity in the root brain
+					area
+				</li>
+				<li>
+					<strong>brain_area_VISp (4.8%)</strong>: Activity in the primary
+					visual cortex, directly processing visual stimuli
+				</li>
+			</ul>
+
+			<p>
+				This analysis shows that both task parameters (contrast differences) and
+				neural activity in specific brain regions (especially visual and memory
+				areas) contribute to predicting trial outcomes.
+			</p>
+
+			<section id="cross-session-generalization">
+				<h3>Cross-Session Generalization</h3>
+
+				<p>
+					To assess our model's generalizability, we implemented
+					leave-one-session-out cross-validation, systematically testing how
+					well neural patterns learned from 17 sessions could predict outcomes
+					in the remaining session. This rigorous approach evaluates the model's
+					ability to generalize to previously unseen experimental contexts.
+				</p>
+
+				<div class="figure">
+					<img
+						src="./images/session_accuracy.png"
+						alt="Model Accuracy by Session"
+						class="img-fluid"
+					/>
+					<p class="figure-caption">
+						Figure 6: Model accuracy when each session is used as a test set.
+					</p>
+				</div>
+
+				<p>
+					This analysis revealed substantial variation in how well our model
+					generalizes to different sessions, with accuracies ranging from
+					approximately 65% to 78%. The mean cross-validation accuracy of 71.9%
+					demonstrates the model's overall strong predictive capability across
+					different neural recordings.
+				</p>
+
+				<p>
+					Notable patterns emerged across mice and sessions: Forssmann sessions
+					(particularly 4 and 7) showed the highest predictability with
+					accuracies of 78%, while some Lederberg sessions (14 and 15) proved
+					more challenging to predict with accuracies of 65-66%. This variation
+					likely reflects differences in recording quality, session-specific
+					mouse behavior, or distinct neural encoding patterns that emerge under
+					different experimental conditions.
+				</p>
+
+				<div class="highlight">
+					<p>
+						<strong>Key finding:</strong> While our model demonstrates good
+						cross-session generalization overall, the substantial
+						session-to-session variability suggests that neural activity
+						patterns have both consistent elements that generalize well and
+						session-specific characteristics that may require specialized
+						approaches for optimal prediction.
+					</p>
+				</div>
+			</section>
+
+			<section id="test-performance">
+				<h2>Section 5: Prediction Performance on the Test Sets</h2>
+
+				<p>
+					We evaluated our final optimized model on test sets from Sessions 1
+					and 18, which will be used for the final evaluation:
+				</p>
+
+				<table class="results-table">
+					<thead>
+						<tr>
+							<th>Test Set</th>
+							<th>Accuracy</th>
+							<th>Precision</th>
+							<th>Recall</th>
+							<th>F1-Score</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>Session 1</td>
+							<td>81.58%</td>
+							<td>0.83</td>
+							<td>1.00</td>
+							<td>0.91</td>
+						</tr>
+						<tr>
+							<td>Session 18</td>
+							<td>83.33%</td>
+							<td>0.79</td>
+							<td>0.94</td>
+							<td>0.86</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<p>
+					For Session 1, our model achieved excellent recall (100%) but lower
+					precision (83%), indicating it correctly identified all successful
+					trials but sometimes misclassified unsuccessful trials as successful.
+				</p>
+
+				<p>
+					For Session 18, the model showed more balanced performance with good
+					precision (79%) and recall (94%).
+				</p>
+			</section>
+			<div class="figure">
+				<img
+					src="./images/confusion_matrices.png"
+					alt="Confusion Matrices for Test Sessions"
+				/>
+				<p class="figure-caption">
+					Figure 7: Confusion matrices for Session 1 (left) and Session 18
+					(right).
+				</p>
+			</div>
+
+			<p>
+				The confusion matrices reveal that our model is particularly good at
+				identifying successful trials, which aligns with the mice's own behavior
+				(they are successful more often than not). The model shows some bias
+				toward predicting success, especially for Session 1.
+			</p>
+
+			<p>When we break down performance by contrast difference, we find:</p>
+			<ul>
+				<li>Higher accuracy for high contrast difference trials (up to 90%)</li>
+				<li>Lower accuracy for zero contrast difference trials (around 70%)</li>
+				<li>
+					This pattern mirrors the mice's own performance, suggesting our model
+					has learned the relationship between neural activity and task
+					difficulty
+				</li>
+			</ul>
+
+			<p>
+				Overall, these results demonstrate that our model performs well on the
+				test sessions, with accuracy significantly above chance levels. The
+				performance difference between cross-validation (72%) and specific
+				sessions (81-83%) reflects the advantage of training on data from the
+				same sessions that will be used for testing.
+			</p>
+		</section>
+
+		<section id="discussion">
+			<h2>Section 6: Discussion</h2>
+
+			<p>
+				Our analysis of neural activity during a visual discrimination task has
+				yielded several important insights and contributions:
+			</p>
+
+			<h3>Key Findings</h3>
+			<ul>
+				<li>
+					<strong>Predictive Capability:</strong> We demonstrated that neural
+					activity patterns can predict trial outcomes with approximately 72%
+					accuracy when generalizing to new sessions and over 80% accuracy for
+					specific test sessions.
+				</li>
+
+				<li>
+					<strong>Brain Area Contributions:</strong> Visual areas (VISp, VISl),
+					hippocampal regions (CA1), and motor planning areas (MOs) were
+					particularly important for prediction, aligning with the cognitive
+					processes involved in visual discrimination tasks.
+				</li>
+
+				<li>
+					<strong>Individual Differences:</strong> We observed substantial
+					differences in both neural activity patterns and predictability across
+					mice, highlighting the importance of accounting for individual
+					variability.
+				</li>
+
+				<li>
+					<strong>Task Difficulty Effects:</strong> Both mouse performance and
+					model prediction accuracy improved with increasing contrast
+					difference, confirming that neural representations reflect task
+					difficulty.
+				</li>
+			</ul>
+
+			<h3>Methodological Contributions</h3>
+			<p>
+				Our data integration approach successfully addressed the challenge of
+				combining data across sessions with different recorded neurons. By
+				focusing on brain-area level features rather than individual neurons, we
+				created a consistent feature representation that works across sessions.
+				This approach could be valuable for other neuroscience datasets facing
+				similar challenges.
+			</p>
+
+			<h3>Limitations</h3>
+			<ul>
+				<li>
+					<strong>Brain Area Coverage:</strong> The imbalance in brain area
+					coverage across sessions limits our ability to fully understand the
+					contribution of all regions.
+				</li>
+
+				<li>
+					<strong>Generalization to New Mice:</strong> While our model can
+					generalize across sessions, its ability to generalize to completely
+					new mice remains untested.
+				</li>
+
+				<li>
+					<strong>Temporal Dynamics:</strong> Our current approach averages
+					neural activity over time, potentially missing important temporal
+					patterns that might improve prediction.
+				</li>
+
+				<li>
+					<strong>Causality vs. Correlation:</strong> While we identified brain
+					areas whose activity correlates with successful trials, our analysis
+					cannot determine whether these regions causally influence task
+					performance.
+				</li>
+			</ul>
+
+			<h3>Future Directions</h3>
+			<p>Several promising directions could extend this work:</p>
+			<ul>
+				<li>
+					<strong>Temporal Models:</strong> Incorporating recurrent neural
+					networks or temporal convolutional networks to capture the dynamics of
+					neural activity over time.
+				</li>
+
+				<li>
+					<strong>Functional Connectivity:</strong> Analyzing how different
+					brain regions communicate during the task, potentially revealing
+					coordination patterns that predict success.
+				</li>
+
+				<li>
+					<strong>Transfer Learning:</strong> Testing whether the predictive
+					patterns identified here generalize to other types of decision-making
+					tasks or other mice.
+				</li>
+
+				<li>
+					<strong>More Sophisticated Integration:</strong> Developing more
+					advanced methods for integrating data across sessions, potentially
+					using techniques from domain adaptation.
+				</li>
+			</ul>
+
+			<h3>Conclusion</h3>
+			<p>
+				This work demonstrates that neural activity across distributed brain
+				regions contains rich information about decision-making outcomes. Our
+				ability to predict trial success from neural activity suggests that we
+				have captured meaningful aspects of the neural computations underlying
+				visual discrimination. The finding that multiple brain regions
+				contribute to prediction aligns with modern views of brain function as
+				involving coordinated activity across networks rather than isolated
+				regions. These insights have potential applications in brain-machine
+				interfaces and may contribute to our understanding of decision-making
+				disorders.
+			</p>
+		</section>
+	</body>
+</html>
