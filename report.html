@@ -84,15 +84,15 @@
 		<div class="abstract">
 			<h2>Abstract</h2>
 			<p>
-				This project analyzes neural activity data from mice performing a visual
+				This project analyzes neral activity data from mice performing a visual
 				discrimination task to predict trial outcomes. Using recordings from 18
-				sessions across 4 mice, we developed a data integration approach that
+				sessions across 4 mice, I developed a data integration approach that
 				addresses the challenge of combining information from different neurons
 				across sessions. Our exploratory analysis revealed distinct patterns of
 				neural activity across brain regions, sessions, and individual mice. By
 				applying machine learning techniques with a focus on gradient boosting
-				classifiers, we achieved a cross-validation accuracy of approximately
-				72% when generalizing to new sessions and over 80% accuracy for specific
+				classifiers, I achieved a cross-validation accuracy of approximately 72%
+				when generalizing to new sessions and over 80% accuracy for specific
 				test sessions. Feature importance analysis highlighted that both task
 				parameters (contrast differences) and neural activity in specific brain
 				regions (particularly visual cortex and hippocampus) contribute
@@ -109,9 +109,9 @@
 			<p>
 				This project explores the neural basis of decision-making through
 				analysis of neural recordings from mice performing a visual
-				discrimination task. The central question we aim to address is:
+				discrimination task. The central question I aim to address is:
 				<strong
-					>How can we predict trial outcomes based on neural activity across
+					>How can I predict trial outcomes based on neural activity across
 					different brain regions?</strong
 				>
 				Successfully answering this question has significant implications for
@@ -171,9 +171,9 @@
 
 			<p>
 				The real-world implications of this research extend to understanding
-				neural mechanisms underlying perception and decision-making, with
+				neural mechanisms underlying perception ad decision-making, with
 				potential applications in brain-machine interfaces, neurological
-				disorder diagnosis, and artificial intelligence systems inspired by
+				disorder diagnosis, and artificial intellignce systems inspired by
 				neural computation.
 			</p>
 		</section>
@@ -202,7 +202,7 @@
 
 			<p>
 				Most sessions recorded between 700-1100 neurons, with Sessions 4 and 5
-				having particularly high neuron counts and Sessions 16 and 17 having
+				having particularly high neuron couts and Sessions 16 and 17 having
 				relatively low counts. This variation in neuron count has implications
 				for comparing neural activity patterns across sessions and necessitates
 				normalization approaches.
@@ -281,7 +281,7 @@
 			</table>
 
 			<p>
-				This analysis confirms that larger contrast differences made the task
+				This analysis confirms that larger contrsta differences made the task
 				easier for mice, with success rates increasing monotonically from 63.5%
 				for equal contrasts to 82.3% for maximum contrast difference.
 			</p>
@@ -377,14 +377,14 @@
 			<h2>Section 3: Data Integration</h2>
 
 			<p>
-				A key challenge in this project was developing a method to integrate
-				data across sessions with different recorded neurons. Our data
-				integration approach addressed this challenge in two main ways:
+				A key challenge in this project was devloping a method to integrate data
+				across sessions with different recorded neurons. Our data integration
+				approach addressed this challenge in two main ways:
 			</p>
 
 			<h3>1. Extracting Shared Patterns Across Sessions</h3>
 			<p>
-				We created a standardized feature representation based on brain areas
+				I created a standardized feature representation based on brain areas
 				rather than individual neurons:
 			</p>
 
@@ -443,23 +443,23 @@
     return features_df</code></pre>
 
 			<p>
-				This approach allowed us to create a consistent feature representation
+				This approach alowed us to create a consistent feature representation
 				across all sessions, regardless of which specific neurons were recorded.
-				By averaging neural activity within each brain area, we captured the
+				By averaging neural activity within each brain area, I captured the
 				overall activity patterns while addressing the variability in neuron
 				sampling.
 			</p>
 
 			<h3>2. Addressing Differences Between Sessions</h3>
 			<p>
-				We then enhanced our feature set to account for systematic differences
+				I then enhanced our feature set to account for systematic differences
 				between sessions and mice:
 			</p>
 
 			<pre><code>def add_session_mouse_features(features_df):
     """
     Add features that address differences between sessions and mice.
-    Based on EDA findings, we know that both session and mouse identity
+    Based on EDA findings, I know that both session and mouse identity
     affect neural activity and task performance.
     """
     enhanced_df = features_df.copy()
@@ -511,7 +511,7 @@
 
 			<h3>3. Train/Test Split for Cross-Session Prediction</h3>
 			<p>
-				Finally, we created a function to enable leave-one-session-out
+				Finally, I created a function to enable leave-one-session-out
 				validation, which properly tests how well our model generalizes to new
 				sessions:
 			</p>
@@ -544,8 +544,8 @@
 
 			<h3>Model Selection</h3>
 			<p>
-				We evaluated several classification models to predict trial success
-				based on our integrated features:
+				I evaluated several classification models to predict trial success based
+				on our integrated features:
 			</p>
 
 			<table>
@@ -568,19 +568,19 @@
 			</table>
 
 			<p>
-				Based on these results, we selected Gradient Boosting for further
+				Based on these results, I selected Gradient Boosting for further
 				optimization.
 			</p>
 
 			<h3>Hyperparameter Tuning</h3>
 			<p>
-				We performed extensive hyperparameter tuning using leave-one-session-out
+				I performed extensive hyperparameter tuning using leave-one-session-out
 				cross-validation to ensure our model would generalize to new sessions:
 			</p>
 
 			<pre><code>def tune_model_hyperparameters(integrated_df):
     """
-    Perform grid search to find the best hyperparameters for our model.
+    Perform grid sarch to find the best hyperparameters for our model.
     Uses leave-one-session-out cross-validation to properly evaluate
     how well the model generalizes to new sessions.
     """
@@ -680,10 +680,10 @@
 				<h3>Cross-Session Generalization</h3>
 
 				<p>
-					To assess our model's generalizability, we implemented
-					leave-one-session-out cross-validation, systematically testing how
-					well neural patterns learned from 17 sessions could predict outcomes
-					in the remaining session. This rigorous approach evaluates the model's
+					To assess our model's generalizability, I implemented leave one
+					session mout cross-validation, systematically testing how well neural
+					patterns learned from 17 sessions could predict outcomes in the
+					remaining session. This rigorous approach evaluates the model's
 					ability to generalize to previously unseen experimental contexts.
 				</p>
 
@@ -732,8 +732,8 @@
 				<h2>Section 5: Prediction Performance on the Test Sets</h2>
 
 				<p>
-					We evaluated our final optimized model on test sets from Sessions 1
-					and 18, which will be used for the final evaluation:
+					I evaluated our final optimized model on test sets from Sessions 1 and
+					18, which will be used for the final evaluation:
 				</p>
 
 				<table class="results-table">
@@ -793,7 +793,7 @@
 				toward predicting success, especially for Session 1.
 			</p>
 
-			<p>When we break down performance by contrast difference, we find:</p>
+			<p>When I break down performance by contrast difference, I find:</p>
 			<ul>
 				<li>Higher accuracy for high contrast difference trials (up to 90%)</li>
 				<li>Lower accuracy for zero contrast difference trials (around 70%)</li>
@@ -809,7 +809,7 @@
 				test sessions, with accuracy significantly above chance levels. The
 				performance difference between cross-validation (72%) and specific
 				sessions (81-83%) reflects the advantage of training on data from the
-				same sessions that will be used for testing.
+				same sessions that will be used for tsting.
 			</p>
 		</section>
 
@@ -824,7 +824,7 @@
 			<h3>Key Findings</h3>
 			<ul>
 				<li>
-					<strong>Predictive Capability:</strong> We demonstrated that neural
+					<strong>Predictive Capability:</strong> I demonstrated that neural
 					activity patterns can predict trial outcomes with approximately 72%
 					accuracy when generalizing to new sessions and over 80% accuracy for
 					specific test sessions.
@@ -838,7 +838,7 @@
 				</li>
 
 				<li>
-					<strong>Individual Differences:</strong> We observed substantial
+					<strong>Individual Differences:</strong> I observed substantial
 					differences in both neural activity patterns and predictability across
 					mice, highlighting the importance of accounting for individual
 					variability.
@@ -883,7 +883,7 @@
 				</li>
 
 				<li>
-					<strong>Causality vs. Correlation:</strong> While we identified brain
+					<strong>Causality vs. Correlation:</strong> While I identified brain
 					areas whose activity correlates with successful trials, our analysis
 					cannot determine whether these regions causally influence task
 					performance.
@@ -924,12 +924,30 @@
 				regions contains rich information about decision-making outcomes. Our
 				ability to predict trial success from neural activity suggests that we
 				have captured meaningful aspects of the neural computations underlying
-				visual discrimination. The finding that multiple brain regions
-				contribute to prediction aligns with modern views of brain function as
-				involving coordinated activity across networks rather than isolated
-				regions. These insights have potential applications in brain-machine
-				interfaces and may contribute to our understanding of decision-making
-				disorders.
+				visual discrimination. The finding that multiple brain regions cntribute
+				to prediction aligns with modern views of brain function as involving
+				coordinated activity across netwrks rather than isolated regions. These
+				insights have potential applications in brain-machine interfaces and may
+				contribute to our understanding of decision making disorders.
+			</p>
+		</section>
+
+		<section id="code-appendix">
+			<h2>Appendix: Code Repository</h2>
+			<p>
+				The complete code for this project is available in the following GitHub
+				repository:
+			</p>
+			<p>
+				<a
+					href="https://github.com/ItamarLevi02/STA_141A_Final_Project"
+					target="_blank"
+					>https://github.com/ItamarLevi02/STA_141A_Final_Project</a
+				>
+			</p>
+			<p>
+				This repository contains all the notebooks, data processing scripts, and
+				analysis code used in this project.
 			</p>
 		</section>
 	</body>
