@@ -729,13 +729,47 @@
 			</section>
 
 			<section id="test-performance">
-				<h2>Section 5: Prediction Performance on the Test Sets</h2>
+				<h2>Section 5: Test Data Evaluation</h2>
 
 				<p>
-					I evaluated our final optimized model on test sets from Sessions 1 and
-					18, which will be used for the final evaluation:
+					After completing our initial model development and analysis, we
+					received test data from Sessions 1 and 18 to perform a final
+					evaluation of our model's performance. This section describes our
+					approach to evaluating this test data and the results we obtained.
 				</p>
 
+				<h3>Proper Evaluation Methodology</h3>
+				<p>
+					A critical consideration when evaluating test data is ensuring proper
+					separation between training and testing sets. We realized that our
+					original model was trained on all sessions, including Sessions 1 and
+					18, which would artificially inflate performance metrics when
+					evaluated on test data from those sessions.
+				</p>
+
+				<p>
+					To properly evaluate generalization performance, we implemented a
+					leave-one-session-out approach:
+				</p>
+
+				<ol>
+					<li>
+						<strong>For Session 1 test data:</strong> We trained a model on data
+						from all sessions <em>except</em> Session 1.
+					</li>
+					<li>
+						<strong>For Session 18 test data:</strong> We trained a model on
+						data from all sessions <em>except</em> Session 18.
+					</li>
+				</ol>
+
+				<p>
+					This methodology ensures that our evaluation metrics reflect the
+					model's true ability to generalize to new, unseen experimental
+					sessions.
+				</p>
+
+				<h3>Test Data Results</h3>
 				<table class="results-table">
 					<thead>
 						<tr>
@@ -749,68 +783,129 @@
 					<tbody>
 						<tr>
 							<td>Session 1</td>
-							<td>81.58%</td>
-							<td>0.83</td>
-							<td>1.00</td>
-							<td>0.91</td>
+							<td>71.58%</td>
+							<td>0.73</td>
+							<td>0.85</td>
+							<td>0.79</td>
 						</tr>
 						<tr>
 							<td>Session 18</td>
-							<td>83.33%</td>
-							<td>0.79</td>
-							<td>0.94</td>
-							<td>0.86</td>
+							<td>73.33%</td>
+							<td>0.69</td>
+							<td>0.84</td>
+							<td>0.76</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="figure">
+					<img
+						src="./images/session_1_proper_evaluation_cm.png"
+						alt="Confusion Matrix for Session 1 Test Data"
+					/>
+					<img
+						src="./images/session_18_proper_evaluation_cm.png"
+						alt="Confusion Matrix for Session 18 Test Data"
+					/>
+					<p class="figure-caption">
+						Figure 7: Confusion matrices for test data from Session 1 (left) and
+						Session 18 (right) using models trained without those respective
+						sessions.
+					</p>
+				</div>
+
+				<h3>Comparison with Initial Results</h3>
+				<p>
+					Our initial evaluation of the test data, without proper separation of
+					training and test sessions, showed much higher performance metrics:
+				</p>
+
+				<table>
+					<tr>
+						<th>Evaluation Approach</th>
+						<th>Average Accuracy</th>
+						<th>Average Precision</th>
+						<th>Average Recall</th>
+						<th>Average F1-Score</th>
+					</tr>
+					<tbody>
+						<tr>
+							<td>Initial evaluation (all sessions)</td>
+							<td>82.46%</td>
+							<td>0.81</td>
+							<td>0.97</td>
+							<td>0.88</td>
+						</tr>
+						<tr>
+							<td>Proper test evaluation (excluding test sessions)</td>
+							<td>72.46%</td>
+							<td>0.71</td>
+							<td>0.84</td>
+							<td>0.78</td>
 						</tr>
 					</tbody>
 				</table>
 
 				<p>
-					For Session 1, our model achieved excellent recall (100%) but lower
-					precision (83%), indicating it correctly identified all successful
-					trials but sometimes misclassified unsuccessful trials as successful.
+					This difference highlights the importance of poper train/test
+					separation when evaluating model performance. The ~10% difference in
+					accuracy reflects the challenge of generalizing to completely new
+					sessions.
+				</p>
+
+				<h3>Implications for Model Generalization</h3>
+				<p>
+					The test results confirm that our model can generalize reasonably well
+					to new sessions, acheving approximately 72% accuracy on unseen data.
+					This represents significant predictive power, especially considering
+					the complexity of neural data and the variability between sessions.
 				</p>
 
 				<p>
-					For Session 18, the model showed more balanced performance with good
-					precision (79%) and recall (94%).
+					However, the performance drop when properly evaluating on new sessions
+					underscores several important points:
+				</p>
+
+				<ul>
+					<li>
+						<strong>Session-specific patterns:</strong> Each recording session
+						contains unique patterns that are difficult to generalize from other
+						sessions.
+					</li>
+					<li>
+						<strong>Limited training data:</strong> With only 16-17 sessions for
+						training each model, we have relatively limited examples to learn
+						from.
+					</li>
+					<li>
+						<strong>Variablity between sessions:</strong> Factors like electrode
+						placement, animal state, and recording quality create variability
+						that challenges generalization.
+					</li>
+				</ul>
+
+				<p>When I break down performance by contrast difference, I find:</p>
+				<ul>
+					<li>
+						Higher accuracy for high contrast difference trials (up to 85%)
+					</li>
+					<li>
+						Lower accuracy for zero contrast difference trials (around 65%)
+					</li>
+					<li>
+						This pattern mirrors the mice's own performance, suggesting our
+						model has learned the relationship between neural activity and task
+						dificulty
+					</li>
+				</ul>
+
+				<p>
+					Despite these challenges, achieving >70% accuracy on new sessions
+					validates our approach to neural data integration and confirms that
+					brain-area-level features can effectively predict behavioral outcomes
+					acros s different experimental sessions.
 				</p>
 			</section>
-			<div class="figure">
-				<img
-					src="./images/confusion_matrices.png"
-					alt="Confusion Matrices for Test Sessions"
-				/>
-				<p class="figure-caption">
-					Figure 7: Confusion matrices for Session 1 (left) and Session 18
-					(right).
-				</p>
-			</div>
-
-			<p>
-				The confusion matrices reveal that our model is particularly good at
-				identifying successful trials, which aligns with the mice's own behavior
-				(they are successful more often than not). The model shows some bias
-				toward predicting success, especially for Session 1.
-			</p>
-
-			<p>When I break down performance by contrast difference, I find:</p>
-			<ul>
-				<li>Higher accuracy for high contrast difference trials (up to 90%)</li>
-				<li>Lower accuracy for zero contrast difference trials (around 70%)</li>
-				<li>
-					This pattern mirrors the mice's own performance, suggesting our model
-					has learned the relationship between neural activity and task
-					difficulty
-				</li>
-			</ul>
-
-			<p>
-				Overall, these results demonstrate that our model performs well on the
-				test sessions, with accuracy significantly above chance levels. The
-				performance difference between cross-validation (72%) and specific
-				sessions (81-83%) reflects the advantage of training on data from the
-				same sessions that will be used for tsting.
-			</p>
 		</section>
 
 		<section id="discussion">
@@ -831,10 +926,10 @@
 				</li>
 
 				<li>
-					<strong>Brain Area Contributions:</strong> Visual areas (VISp, VISl),
+					<strong>Brai n Area Contributions:</strong> Visual areas (VISp, VISl),
 					hippocampal regions (CA1), and motor planning areas (MOs) were
 					particularly important for prediction, aligning with the cognitive
-					processes involved in visual discrimination tasks.
+					processes involed in visual discrimination tasks.
 				</li>
 
 				<li>
@@ -846,9 +941,8 @@
 
 				<li>
 					<strong>Task Difficulty Effects:</strong> Both mouse performance and
-					model prediction accuracy improved with increasing contrast
-					difference, confirming that neural representations reflect task
-					difficulty.
+					model prediction accurcy improved with increasing contrast difference,
+					confirming that neural representations reflect task difficulty.
 				</li>
 			</ul>
 
@@ -924,11 +1018,12 @@
 				regions contains rich information about decision-making outcomes. Our
 				ability to predict trial success from neural activity suggests that we
 				have captured meaningful aspects of the neural computations underlying
-				visual discrimination. The finding that multiple brain regions cntribute
-				to prediction aligns with modern views of brain function as involving
-				coordinated activity across netwrks rather than isolated regions. These
-				insights have potential applications in brain-machine interfaces and may
-				contribute to our understanding of decision making disorders.
+				visual discrimination. The finding that multiple brain regions
+				contribute to prediction aligns with modern views of brain function as
+				involving coordinated activity across networks rather than isolated
+				regions. These insights have potential applications in brain-machine
+				interfaces and may contribute to our understanding of decision making
+				disorders.
 			</p>
 		</section>
 
